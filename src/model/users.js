@@ -63,8 +63,7 @@ module.exports = (sequelize, DataTypes) => {
           fields: ['email']
         }
       ]
-    }
-  );
+    });
 
   // we don't want to send password even if crypted
   Users.excludeAttributes = ['hash'];
@@ -80,6 +79,10 @@ module.exports = (sequelize, DataTypes) => {
         return resolve();
       });
     });
+  };
+
+  Users.associate = models => {
+    Users.belongsToMany(models.Groups, {through: 'UsersGroups'});
   };
 
   return Users;

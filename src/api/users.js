@@ -1,6 +1,6 @@
 const express = require('express');
 const jwt = require('jwt-simple');
-const { createUser, loginUser } = require('../controller/users');
+const { createUser, loginUser, updateUser, deleteUser } = require('../controller/users');
 const logger = require('../logger');
 
 const apiUsers = express.Router();
@@ -93,6 +93,43 @@ apiUsersProtected.get('/', (req, res) =>
     profile: req.user,
     message: 'user logged in'
   })
+);
+
+apiUsersProtected.put('/', (req, res) => 
+  !req.body.firstname && !req.body.lastname
+    ? res.status(400).send({
+      success: false,
+      message: 'Identifier, firstname and lastname is required'
+    })
+    : updateUser(req.user.id, req.body)
+      .then(user => res.status(200).send({
+        success: true,
+        profile: user,
+        message: 'modify info of logged user'
+      }))
+      .catch(err => {
+        logger.error(`💥 Failed to update user : ${err.stack}`);
+        return res.status(500).send({
+          success: false,
+          message: `${err.name} : ${err.message}`
+        });
+      })
+    );
+
+apiUsersProtected.delete('/', (req, res) => 
+      deleteUser(req.user)
+        .then(user => res.status(200).send({
+          success: true,
+          profile: user,
+          message: 'User deleted succesful'
+        }))
+        .catch(err => {
+          logger.error(`💥 Failed to delete user : ${err.stack}`);
+          return res.status(500).send({
+            success: false,
+            message: `${err.name} : ${err.message}`
+          });
+        })
 );
 
 module.exports = { apiUsers, apiUsersProtected };
